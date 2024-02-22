@@ -4,146 +4,156 @@ import java.util.Random;
 
 public class Cliente {
 	public static void main(String[] args) {
-		try {
-			BufferedReader userInput = new BufferedReader(new InputStreamReader(System.in));
+		
+		do {
 
-			System.out.println("Bienvenido al Juego en Red");
-			System.out.println("1. Crear partida");
-			System.out.println("2. Unirse a una partida");
-			System.out.println("3. Salir");
+			try {
+				BufferedReader userInput = new BufferedReader(new InputStreamReader(System.in));
 
-			System.out.print("Ingrese su opción: ");
-			int opcion = Integer.parseInt(userInput.readLine());
+				System.out.println("Bienvenido al Juego en Red");
+				System.out.println("1. Crear partida");
+				System.out.println("2. Unirse a una partida");
+				System.out.println("3. Salir");
 
-			if (opcion == 1 || opcion == 2) {
-				String servidorCentralIP = "localhost";
-				int servidorCentralPort = 7879;
+				System.out.print("Ingrese su opción: ");
+				int opcion = Integer.parseInt(userInput.readLine());
 
-				Socket serverCentralSocket = new Socket(servidorCentralIP, servidorCentralPort);
-				BufferedReader in = new BufferedReader(new InputStreamReader(serverCentralSocket.getInputStream()));
-				PrintWriter out = new PrintWriter(serverCentralSocket.getOutputStream(), true);
+				if (opcion == 1 || opcion == 2) {
+					String servidorCentralIP = "localhost";
+					int servidorCentralPort = 7879;
 
-				if (opcion == 1) {
-					// Crear partida
-					out.println("CREAR");
-					String response = in.readLine();
+					Socket serverCentralSocket = new Socket(servidorCentralIP, servidorCentralPort);
+					BufferedReader in = new BufferedReader(new InputStreamReader(serverCentralSocket.getInputStream()));
+					PrintWriter out = new PrintWriter(serverCentralSocket.getOutputStream(), true);
 
-					if (response.startsWith("OK")) {
-						int puertoPartida = Integer.parseInt(response.split(" ")[1]);
-						System.out.println("Partida creada. Esperando a un oponente en el puerto " + puertoPartida);
+					if (opcion == 1) {
+						// Crear partida
+						out.println("CREAR");
+						String response = in.readLine();
 
-						// Lógica del juego
-						jugarPartida(puertoPartida, true);
+						if (response.startsWith("OK")) {
+							int puertoPartida = Integer.parseInt(response.split(" ")[1]);
+							System.out.println("Partida creada. Esperando a un oponente en el puerto " + puertoPartida);
+							// Lógica del juego
+							jugarPartida(puertoPartida, true);
 
-					} else {
-						System.out.println("Error al crear la partida: " + response);
+						} else {
+							System.out.println("Error al crear la partida: " + response);
+						}
+						
+													
+						
+					} else if (opcion == 2) {
+						// Unirse a una partida
+						out.println("UNIRME");
+						String response = in.readLine();
+
+						if (response.equals("NO_HAY_PARTIDAS")) {
+							System.out.println("No hay partidas disponibles. Inténtelo más tarde.");
+						} else {
+							String[] partidaInfo = response.split("::");
+							String ipPartida = partidaInfo[0];
+							int puertoPartida = Integer.parseInt(partidaInfo[1]);
+
+							System.out.println(
+									"Unido a una partida. Esperando al oponente en " + ipPartida + ":" + puertoPartida);
+
+							// Lógica del juego
+							jugarPartidaComoCliente(ipPartida, puertoPartida);
+						}
 					}
-				} else if (opcion == 2) {
-					// Unirse a una partida
-					out.println("UNIRME");
-					String response = in.readLine();
 
-					if (response.equals("NO_HAY_PARTIDAS")) {
-						System.out.println("No hay partidas disponibles. Inténtelo más tarde.");
-					} else {
-						String[] partidaInfo = response.split("::");
-						String ipPartida = partidaInfo[0];
-						int puertoPartida = Integer.parseInt(partidaInfo[1]);
-
-						System.out.println(
-								"Unido a una partida. Esperando al oponente en " + ipPartida + ":" + puertoPartida);
-
-						// Lógica del juego
-						jugarPartidaComoCliente(ipPartida, puertoPartida);
-					}
+					serverCentralSocket.close();
+				} else {
+					System.out.println("Hasta luego.");
+					break;
 				}
 
-				serverCentralSocket.close();
-			} else {
-				System.out.println("Hasta luego.");
+			} catch (IOException e) {
+				e.printStackTrace();
 			}
-
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+			
+			
+		} while (true);
+		
 	}
 
 	private static void jugarPartidaComoCliente(String ipPartida, int puertoPartida) {
-    try {
-        System.out.println("Intentando conectar a la partida en " + ipPartida + ":" + puertoPartida);
-        Socket partidaSocket = new Socket(ipPartida, puertoPartida);
-        System.out.println("Conexión establecida con éxito.");
-        BufferedReader partidaIn = new BufferedReader(new InputStreamReader(partidaSocket.getInputStream()));
-        PrintWriter partidaOut = new PrintWriter(partidaSocket.getOutputStream(), true);
+		try {
+			System.out.println("Intentando conectar a la partida en " + ipPartida + ":" + puertoPartida);
+			Socket partidaSocket = new Socket(ipPartida, puertoPartida);
+			System.out.println("Conexión establecida con éxito.");
+			BufferedReader partidaIn = new BufferedReader(new InputStreamReader(partidaSocket.getInputStream()));
+			PrintWriter partidaOut = new PrintWriter(partidaSocket.getOutputStream(), true);
 
-        // Determinar aleatoriamente quién empieza
-        boolean soyPrimerJugador = new Random().nextBoolean();
-        char miSimbolo = soyPrimerJugador ? 'X' : 'O';
-        char simboloOponente = soyPrimerJugador ? 'O' : 'X';
+			// Determinar aleatoriamente quién empieza
+			boolean soyPrimerJugador = new Random().nextBoolean();
+			char miSimbolo = soyPrimerJugador ? 'X' : 'O';
+			char simboloOponente = soyPrimerJugador ? 'O' : 'X';
 
-        char[][] tablero = new char[3][3];
-        boolean juegoEnCurso = true;
+			char[][] tablero = new char[3][3];
+			boolean juegoEnCurso = true;
 
-        if (soyPrimerJugador) {
-            // Envía la señal de inicio al oponente
-            partidaOut.println("LISTO");
-            // Envía la información sobre quién comienza
-            partidaOut.println("TU_TURNO");
-        } else {
-            // Espera la señal de inicio y quién comienza del oponente
-            String inicio = partidaIn.readLine();
-            if (!inicio.equals("LISTO")) {
-                System.out.println("Error de inicio de la partida.");
-                return;
-            }
-            String turnoOponente = partidaIn.readLine();
-            if (!turnoOponente.equals("TU_TURNO")) {
-                System.out.println("Error en la información del turno del oponente.");
-                return;
-            }
-        }
+			if (soyPrimerJugador) {
+				// Envía la señal de inicio al oponente
+				partidaOut.println("LISTO");
+				// Envía la información sobre quién comienza
+				partidaOut.println("TU_TURNO");
+			} else {
+				// Espera la señal de inicio y quién comienza del oponente
+				String inicio = partidaIn.readLine();
+				if (!inicio.equals("LISTO")) {
+					System.out.println("Error de inicio de la partida.");
+					return;
+				}
+				String turnoOponente = partidaIn.readLine();
+				if (!turnoOponente.equals("TU_TURNO")) {
+					System.out.println("Error en la información del turno del oponente.");
+					return;
+				}
+			}
 
-        while (juegoEnCurso) {
-            // Imprimir tablero
-            imprimirTablero(tablero);
+			while (juegoEnCurso) {
+				// Imprimir tablero
+				imprimirTablero(tablero);
 
-            // Turno del jugador
-            if (soyPrimerJugador) {
-                System.out.println("Es tu turno. Ingresa la fila y la columna (ej. 1 2): ");
-               
-             String movimiento;
-                do {
-                    movimiento = leerMovimiento();
-                } while (!esMovimientoValido(movimiento, tablero));
-                partidaOut.println(movimiento);
-                actualizarTablero(tablero, miSimbolo, movimiento);
-            } else {
-                System.out.println("Esperando el movimiento del oponente...");
-                String movimientoOponente = partidaIn.readLine();
-                actualizarTablero(tablero, simboloOponente, movimientoOponente);
-            }
+				// Turno del jugador
+				if (soyPrimerJugador) {
+					System.out.println("Es tu turno. Ingresa la fila y la columna (ej. 1 2): ");
 
-            // Verificar el estado del juego
-            if (verificarGanador(tablero, miSimbolo)) {
-                imprimirTablero(tablero);
-                System.out.println("¡Felicidades! ¡Has ganado!");
-                juegoEnCurso = false;
-            } else if (tableroLleno(tablero)) {
-                imprimirTablero(tablero);
-                System.out.println("¡El juego ha terminado en empate!");
-                juegoEnCurso = false;
-            }
+					String movimiento;
+					do {
+						movimiento = leerMovimiento();
+					} while (!esMovimientoValido(movimiento, tablero));
+					partidaOut.println(movimiento);
+					actualizarTablero(tablero, miSimbolo, movimiento);
+				} else {
+					System.out.println("Esperando el movimiento del oponente...");
+					String movimientoOponente = partidaIn.readLine();
+					actualizarTablero(tablero, simboloOponente, movimientoOponente);
+				}
 
-            // Cambiar de turno
-            soyPrimerJugador = !soyPrimerJugador;
-        }
+				// Verificar el estado del juego
+				if (verificarGanador(tablero, miSimbolo)) {
+					imprimirTablero(tablero);
+					System.out.println("¡Felicidades! ¡Has ganado!");
+					juegoEnCurso = false;
+				} else if (tableroLleno(tablero)) {
+					imprimirTablero(tablero);
+					System.out.println("¡El juego ha terminado en empate!");
+					juegoEnCurso = false;
+				}
 
-        partidaSocket.close();
-    } catch (IOException e) {
-        System.err.println("Error al intentar conectar a la partida: " + e.getMessage());
-        e.printStackTrace();
-    }
-}
+				// Cambiar de turno
+				soyPrimerJugador = !soyPrimerJugador;
+			}
+
+			partidaSocket.close();
+		} catch (IOException e) {
+			System.err.println("Error al intentar conectar a la partida: " + e.getMessage());
+			e.printStackTrace();
+		}
+	}
 
 	private static void jugarPartida(int puertoPartida, boolean primerJugador) {
 		try {
@@ -177,9 +187,9 @@ public class Cliente {
 				if (soyPrimerJugador) {
 					System.out.println("Es tu turno. Ingresa la fila y la columna (ej. 1 2): ");
 					String movimiento;
-	                do {
-	                    movimiento = leerMovimiento();
-	                } while (!esMovimientoValido(movimiento, tablero));
+					do {
+						movimiento = leerMovimiento();
+					} while (!esMovimientoValido(movimiento, tablero));
 					oponenteOut.println(movimiento);
 					actualizarTablero(tablero, miSimbolo, movimiento);
 				} else {
@@ -209,7 +219,6 @@ public class Cliente {
 			e.printStackTrace();
 		}
 	}
-	
 
 	private static String leerMovimiento() {
 		try {
@@ -240,11 +249,16 @@ public class Cliente {
 	}
 
 	private static void actualizarTablero(char[][] tablero, char jugador, String movimiento) {
-		String[] partes = movimiento.split(" ");
-		int fila = Integer.parseInt(partes[0]) - 1;
-		int columna = Integer.parseInt(partes[1]) - 1;
+		    if (movimiento.equals("LISTO")) {
+		        System.out.println("El oponente está listo para comenzar.");
+		        return; // No es un movimiento válido, no actualizamos el tablero
+		    }
 
-		tablero[fila][columna] = jugador;
+		    String[] partes = movimiento.split(" ");
+		    int fila = Integer.parseInt(partes[0]) - 1;
+		    int columna = Integer.parseInt(partes[1]) - 1;
+
+		    tablero[fila][columna] = jugador;
 	}
 
 	private static boolean verificarGanador(char[][] tablero, char jugador) {
