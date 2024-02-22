@@ -3,3 +3,6 @@
 /META-INF/
 /ServidorPartidaHandler.class
 /Cliente.class
+/Partida.class
+/ServidorCentralHandler.class
+/TicTacToeClient.class

@@ -1,10 +1,11 @@
 import java.net.*;
 import java.io.*;
-import java.util.*;
+import java.util.LinkedList;
+import java.util.Queue;
 
 public class ServidorCentral {
     private static final int PORT = 7879;
-    private static List<String> partidasNuevas = new ArrayList<>();
+    private static final Queue<Partida> partidasEnEspera = new LinkedList<>();
 
     public static void main(String[] args) {
         try {
@@ -13,21 +14,18 @@ public class ServidorCentral {
 
             while (true) {
                 Socket clientSocket = serverSocket.accept();
-                new Thread(new ServidorPartidaHandler(clientSocket)).start();
+                new Thread(new ServidorCentralHandler(clientSocket)).start();
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    static synchronized void agregarPartidaNueva(String ip, int puerto) {
-        partidasNuevas.add(ip + "::" + puerto);
+    static synchronized void agregarPartidaEnEspera(Partida partida) {
+        partidasEnEspera.add(partida);
     }
 
-    static synchronized String obtenerPartidaNueva() {
-        if (!partidasNuevas.isEmpty()) {
-            return partidasNuevas.remove(0);
-        }
-        return null;
+    static synchronized Partida obtenerPartidaEnEspera() {
+        return partidasEnEspera.poll();
     }
 }
