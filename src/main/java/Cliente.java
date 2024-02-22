@@ -110,7 +110,11 @@ public class Cliente {
             // Turno del jugador
             if (soyPrimerJugador) {
                 System.out.println("Es tu turno. Ingresa la fila y la columna (ej. 1 2): ");
-                String movimiento = leerMovimiento();
+               
+             String movimiento;
+                do {
+                    movimiento = leerMovimiento();
+                } while (!esMovimientoValido(movimiento, tablero));
                 partidaOut.println(movimiento);
                 actualizarTablero(tablero, miSimbolo, movimiento);
             } else {
@@ -172,7 +176,10 @@ public class Cliente {
 				// Turno del jugador
 				if (soyPrimerJugador) {
 					System.out.println("Es tu turno. Ingresa la fila y la columna (ej. 1 2): ");
-					String movimiento = leerMovimiento();
+					String movimiento;
+	                do {
+	                    movimiento = leerMovimiento();
+	                } while (!esMovimientoValido(movimiento, tablero));
 					oponenteOut.println(movimiento);
 					actualizarTablero(tablero, miSimbolo, movimiento);
 				} else {
@@ -202,6 +209,7 @@ public class Cliente {
 			e.printStackTrace();
 		}
 	}
+	
 
 	private static String leerMovimiento() {
 		try {
