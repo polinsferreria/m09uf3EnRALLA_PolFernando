@@ -90,8 +90,11 @@ public class Cliente {
 
                 // Turno del jugador
                 if (soyPrimerJugador) {
-                    System.out.println("Es tu turno. Ingresa la fila y la columna (ej. 1 2): ");
-                    String movimiento = leerMovimiento();
+                    String movimiento;
+                    do {
+                        System.out.println("Es tu turno. Ingresa la fila y la columna (ej. 1 2): ");
+                        movimiento = leerMovimiento();
+                    } while (!esMovimientoValido(movimiento, tablero)); // Validación del movimiento
                     partidaOut.println(movimiento);
                     actualizarTablero(tablero, miSimbolo, movimiento);
                 } else {
@@ -236,6 +239,31 @@ public class Cliente {
                     return false;
                 }
             }
+        }
+        return true;
+    }
+
+    private static boolean esMovimientoValido(String movimiento, char[][] tablero) {
+        String[] partes = movimiento.split(" ");
+        if (partes.length != 2) {
+            System.out.println("Formato incorrecto. Debe ingresar dos valores separados por espacio.");
+            return false;
+        }
+        int fila, columna;
+        try {
+            fila = Integer.parseInt(partes[0]);
+            columna = Integer.parseInt(partes[1]);
+        } catch (NumberFormatException e) {
+            System.out.println("Formato incorrecto. Debe ingresar valores numéricos.");
+            return false;
+        }
+        if (fila < 1 || fila > 3 || columna < 1 || columna > 3) {
+            System.out.println("Valores fuera de rango. Debe ingresar valores entre 1 y 3.");
+            return false;
+        }
+        if (tablero[fila - 1][columna - 1] != 0) {
+            System.out.println("La celda seleccionada ya está ocupada. Por favor, elige otra celda.");
+            return false;
         }
         return true;
     }
