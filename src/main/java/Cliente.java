@@ -1,22 +1,22 @@
 import java.io.*;
 import java.net.*;
 import java.util.Random;
+import java.util.Scanner;
 
 public class Cliente {
 	public static void main(String[] args) {
 		
 		do {
 
-			try {
-				BufferedReader userInput = new BufferedReader(new InputStreamReader(System.in));
-
+			try(BufferedReader userInput = new BufferedReader(new InputStreamReader(System.in))) {
+			
 				System.out.println("Bienvenido al Juego en Red");
 				System.out.println("1. Crear partida");
 				System.out.println("2. Unirse a una partida");
 				System.out.println("3. Salir");
 
 				System.out.print("Ingrese su opción: ");
-				int opcion = Integer.parseInt(userInput.readLine());
+				int opcion = obtenerNumero( 1, 3);
 
 				if (opcion == 1 || opcion == 2) {
 					String servidorCentralIP = "localhost";
@@ -310,4 +310,27 @@ public class Cliente {
 		}
 		return true;
 	}
+	
+	 private static int obtenerNumero(int min, int max) {
+		 
+		 Scanner scanner = new Scanner(System.in);
+		 
+	        int numero;
+	        do {
+	           
+	            while (!scanner.hasNextInt()) {
+	                System.out.println("Error: Debe ingresar un número entero.");
+	                scanner.next(); // Limpiar el búfer de entrada
+	            }
+	            numero = scanner.nextInt();
+	            if (numero >= min && numero <= max) {
+	            	scanner.next();
+	            	scanner.close();
+	            	return numero;	
+				}else{
+					System.out.println("Error: Debe ingresar un número entre " + min + " " + max );
+				}
+	        } while (true);
+	       
+	    }
 }
