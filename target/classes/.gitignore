@@ -1,9 +1,5 @@
-/ServidorCentral.class
-/Client.class
-/META-INF/
-/ServidorPartidaHandler.class
 /Cliente.class
 /Partida.class
-/ServidorCentralHandler.class
-/TicTacToeClient.class
+/ServidorCentral.class
 /ServidorPartida.class
+/META-INF/
