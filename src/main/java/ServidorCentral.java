@@ -8,8 +8,10 @@ public class ServidorCentral {
 
     public static void main(String[] args) {
         final int PUERTO_UDP = 7879;
-        try (DatagramSocket socketUDP = new DatagramSocket(PUERTO_UDP)) {
-            System.out.println("Servidor Central escuchando en el puerto " + PUERTO_UDP);
+        try (DatagramSocket socketUDP = new DatagramSocket(PUERTO_UDP)) { 
+        	String ipServidor = InetAddress.getLocalHost().getHostAddress(); 
+            System.out.println("Servidor Central escuchando en el puerto " + PUERTO_UDP+ " con la ip "+ ipServidor);
+
 
             while (true) {
                 byte[] buffer = new byte[1024];
