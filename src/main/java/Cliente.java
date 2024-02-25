@@ -27,7 +27,8 @@ public class Cliente {
 				switch (opcion) {
 				case 1:
 					int puertoCrearPartida = ingresarPuerto(lector);
-					String respuesta = comunicarseConServidorCentral("CREAR " + puertoCrearPartida);
+		        	String ipCliente = InetAddress.getLocalHost().getHostAddress(); 
+					String respuesta = comunicarseConServidorCentral("CREAR " + puertoCrearPartida+ " " + ipCliente);
 					procesarRespuestaCrearPartida(respuesta, puertoCrearPartida);
 					break;
 				case 2:

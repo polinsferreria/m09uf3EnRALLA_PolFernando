@@ -34,7 +34,7 @@ public class ServidorCentral {
                     case "CREAR":
                         // Crea una nueva partida y maneja la solicitud de creación
                         int puertoJuego = Integer.parseInt(partes[1]);
-                        Partida nuevaPartida = new Partida(direccionCliente.getHostAddress(), puertoJuego);
+                        Partida nuevaPartida = new Partida(partes[2], puertoJuego);
                         manejarCrear(direccionCliente, puertoCliente, nuevaPartida);
                         break;
                     case "UNIR-ME":
