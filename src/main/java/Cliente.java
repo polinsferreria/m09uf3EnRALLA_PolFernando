@@ -1,49 +1,38 @@
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.*;
+import java.util.Scanner;
 
 public class Cliente {
+	private static String direccionServidorCentral;
+	private static final int PUERTO_SERVIDOR = 7879;
+
 	public static void main(String[] args) {
 		try (BufferedReader lector = new BufferedReader(new InputStreamReader(System.in))) {
-			String respuesta;
+			menuServidorMaquina();
+
+			if (obtenerOP()) {
+				direccionServidorCentral = "localhost"; // Dirección del servidor en la misma máquina
+			} else {
+				System.out.print("Ingrese la dirección IP del servidor central: ");
+				direccionServidorCentral = lector.readLine();
+			}
+
 			while (true) {
-
-				System.out.println("Menú Principal:");
-				System.out.println("1. Crear partida");
-				System.out.println("2. Unirse a partida");
-				System.out.println("3. Salir");
-				System.out.print("Seleccione una opción: ");
-
+				mostrarMenuPrincipal();
 				int opcion = Integer.parseInt(lector.readLine());
 
 				switch (opcion) {
 				case 1:
-					System.out.print("Ingrese el puerto para la partida: ");
-					int puertoCrearPartida = Integer.parseInt(lector.readLine());
-
-					// Enviar solicitud al Servidor Central para crear partida
-					respuesta = comunicarseConServidorCentral("CREAR " + puertoCrearPartida);
-					System.out.println(respuesta);
-					if (respuesta.equals("OK")) {
-						System.out.println("Esperando a que otro jugador se una...");
-						// Aquí deberías obtener la información del Servidor Central sobre la conexión
-						// No hay un puerto específico establecido aquí, ya que es aleatorio
-						iniciarServidorPartida(puertoCrearPartida);
-					} else {
-						System.out.println("Error al crear la partida: " + respuesta);
-					}
+					int puertoCrearPartida = ingresarPuerto(lector);
+					String respuesta = comunicarseConServidorCentral("CREAR " + puertoCrearPartida);
+					procesarRespuestaCrearPartida(respuesta, puertoCrearPartida);
 					break;
 				case 2:
 					respuesta = comunicarseConServidorCentral("UNIR-ME");
-					System.out.println(respuesta);
-					if (respuesta.equals("NO_HAY_PARTIDAS")) {
-						System.out.println("no hay partidas. Crea una o intentalo mas tarde.");
-					} else {
-						String[] partidaInfo = respuesta.split("::");
-						String ipPartida = partidaInfo[0];
-						int puertoPartida = Integer.parseInt(partidaInfo[1]);
-						jugarPartidaComoCliente(ipPartida, puertoPartida);
-
-					}
+					procesarRespuestaUnirseAPartida(respuesta, lector);
 					break;
 				case 3:
 					System.out.println("Saliendo del programa.");
@@ -59,9 +48,62 @@ public class Cliente {
 		}
 	}
 
+	private static boolean obtenerOP() {
+		Scanner sc = new Scanner(System.in);
+		
+		do {
+			System.out.print("Ingrese 1 si el servidor central está en esta máquina, 2 si no: ");
+			if (sc.hasNextInt()) {
+				int op = sc.nextInt();
+				if (op == 1 || op == 2) {					
+					return op == 1;
+				}
+			} else {
+				System.out.println("Error, el formato no es adecuado");
+				sc.next();
+			}
+		} while (true);
+		
+	}
+
+	private static void mostrarMenuPrincipal() {
+		System.out.println("Menú Principal:");
+		System.out.println("1. Crear partida");
+		System.out.println("2. Unirse a partida");
+		System.out.println("3. Salir");
+		System.out.print("Seleccione una opción: ");
+	}
+
+	private static int ingresarPuerto(BufferedReader lector) throws IOException {
+		System.out.print("Ingrese el puerto para la partida: ");
+		return Integer.parseInt(lector.readLine());
+	}
+
+	private static void procesarRespuestaCrearPartida(String respuesta, int puertoCrearPartida) {
+		System.out.println(respuesta);
+		if (respuesta.equals("OK")) {
+			System.out.println("Esperando a que otro jugador se una...");
+			iniciarServidorPartida(puertoCrearPartida);
+		} else {
+			System.out.println("Error al crear la partida: " + respuesta);
+		}
+	}
+
+	private static void procesarRespuestaUnirseAPartida(String respuesta, BufferedReader lector) throws IOException {
+		System.out.println(respuesta);
+		if (respuesta.equals("NO_HAY_PARTIDAS")) {
+			System.out.println("No hay partidas. Crea una o inténtalo más tarde.");
+		} else {
+			String[] partidaInfo = respuesta.split("::");
+			String ipPartida = partidaInfo[0];
+			int puertoPartida = Integer.parseInt(partidaInfo[1]);
+			jugarPartidaComoCliente(ipPartida, puertoPartida);
+		}
+	}
+
 	private static String comunicarseConServidorCentral(String mensaje) {
 		try (DatagramSocket socketUDP = new DatagramSocket()) {
-			InetAddress direccionServidor = InetAddress.getByName("localhost");
+			InetAddress direccionServidor = InetAddress.getByName(direccionServidorCentral);
 			int puertoServidor = 7879;
 
 			byte[] bufferEnvio = mensaje.getBytes();
@@ -82,6 +124,7 @@ public class Cliente {
 	}
 
 	private static void jugarPartidaComoCliente(String ipPartida, int puertoPartida) {
+		// Implementar lógica para jugar como cliente
 		try {
 			System.out.println("Intentando conectar a la partida en " + ipPartida + ":" + puertoPartida);
 			Socket partidaSocket = new Socket(ipPartida, puertoPartida);
@@ -168,20 +211,30 @@ public class Cliente {
 			}
 
 			partidaSocket.close();
+		} catch (SocketException e) {
+			System.out.println("El otro jugador se ha desconectado o ha ocurrido un problema de conexión.");
+			return;
 		} catch (IOException e) {
-			System.err.println("Error al intentar conectar a la partida: " + e.getMessage());
-			e.printStackTrace();
+			// Otras excepciones de E/S
+			System.out.println("Error de E/S: " + e.getMessage());
+			return;
 		}
 
 	}
 
 	private static void iniciarServidorPartida(int puertoPartida) {
-		// inicializar al ServidorPartida
+		// Implementar lógica para iniciar el servidor de la partida
 		ServidorPartida s = new ServidorPartida(puertoPartida);
 		if (s.esperarJugador()) {
 			s.elegirPrimerTurno();
 			s.EmpezarPartida();
 		}
+	}
 
+	private static void menuServidorMaquina() {
+		System.out.println("¿El servidor central está en esta máquina?");
+		System.out.println("1. Sí");
+		System.out.println("2. No");
+		System.out.print("Seleccione una opción: ");
 	}
 }
